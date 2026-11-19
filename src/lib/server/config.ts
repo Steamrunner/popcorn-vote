@@ -145,12 +145,13 @@ const WEEKDAYS: Record<string, number> = {
 const FALLBACK_COLORS = ['#e63946', '#457b9d', '#2a9d8f', '#e9c46a', '#9b5de5', '#f4845f'];
 
 /**
- * Fallback for the configurable title top left, and what the layout hands out
- * instead of it before the PIN, that one can carry a family name.
+ * Fallback for the configurable title top left and on the TV stage, and what
+ * the layout hands out instead of it before the PIN, that one can carry a
+ * family name.
  *
- * Not what the PIN page and the TV stage show: those render without the header
- * and take the name from the catalogue key `app.name`. Changing this constant
- * alone renames neither.
+ * Not what the PIN page shows: it renders without the header and takes the
+ * name from the catalogue key `app.name`. Changing this constant alone does
+ * not rename it.
  */
 export const DEFAULT_TITLE = 'Popcorn Vote';
 

@@ -355,7 +355,7 @@
 
 <div class="stage">
 	<header>
-		<p class="kicker">🎬 &nbsp;{t('app.name')}</p>
+		<p class="kicker">🎬 &nbsp;{data.title}</p>
 		{#if mode === 'wheel'}
 			<h1>{t('evaluation.tieWheel')}</h1>
 		{:else if mode === 'board'}
