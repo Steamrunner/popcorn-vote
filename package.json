@@ -23,6 +23,7 @@
 	},
 	"dependencies": {
 		"better-sqlite3": "^13.0.3",
+		"qrcode-generator": "^2.0.4",
 		"yaml": "^2.9.1"
 	},
 	"devDependencies": {

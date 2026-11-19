@@ -1,9 +1,10 @@
 <script lang="ts">
-	import { untrack } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { redirectIfUnauthorized } from '$lib/client/api';
 	import { detectStandalone } from '$lib/client/install.svelte';
 	import { supernova } from '$lib/client/celebrate';
+	import { qrPath, type QrPath } from '$lib/client/qr';
 	import { getI18n, getLocale } from '$lib/i18n/context';
 	import { listNames } from '$lib/member';
 	import { tvBoard, type NightStanding } from '$lib/standings';
@@ -33,6 +34,14 @@
 	let { data } = $props();
 
 	const t = getI18n();
+
+	// The address to vote at is the one this TV reached the app under: only the
+	// browser knows it for certain, the server may sit behind a proxy that never
+	// told it the public origin. So the code is drawn after mount, never in SSR.
+	let voteQr: QrPath | null = $state(null);
+	onMount(() => {
+		voteQr = qrPath(new URL('/', window.location.href).href);
+	});
 	const locale = getLocale();
 
 	// State machine of the TV stage: standings → (wheel) → winner celebration.
@@ -437,10 +446,22 @@
 	<footer>
 		{#if mode === 'reveal'}
 			<p>{t('tv.enjoy')}</p>
-		{:else if mode === 'board'}
-			<p>{t('tv.voteOnPhone')}</p>
 		{/if}
 	</footer>
+
+	{#if mode === 'board' && voteQr}
+		<figure class="voteqr">
+			<figcaption>{t('tv.vote')}</figcaption>
+			<svg
+				viewBox="-2 -2 {voteQr.size + 4} {voteQr.size + 4}"
+				shape-rendering="crispEdges"
+				aria-hidden="true"
+			>
+				<rect x="-2" y="-2" width={voteQr.size + 4} height={voteQr.size + 4} fill="#fff" />
+				<path d={voteQr.path} fill="#0b0f15" />
+			</svg>
+		</figure>
+	{/if}
 </div>
 
 <style>
@@ -762,6 +783,32 @@
 
 	footer {
 		min-height: 1.5em;
+	}
+
+	/* Bottom right, outside the grid, so the board keeps its full width. The
+	   quiet zone of two modules is drawn inside the SVG itself: a QR code needs
+	   light around it, and the stage is dark. */
+	.voteqr {
+		position: absolute;
+		right: clamp(1rem, 3vw, 2.5rem);
+		bottom: clamp(1rem, 2.5vh, 1.75rem);
+		margin: 0;
+		display: grid;
+		gap: 0.5rem;
+		justify-items: center;
+	}
+
+	.voteqr svg {
+		display: block;
+		width: clamp(6rem, 16vh, 11rem);
+		height: auto;
+		border-radius: 0.5rem;
+	}
+
+	.voteqr figcaption {
+		font-size: clamp(1rem, 2.4vh, 1.5rem);
+		font-weight: 800;
+		color: var(--gold);
 	}
 
 	footer p {
