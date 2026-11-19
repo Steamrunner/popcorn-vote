@@ -8,6 +8,7 @@
 	import { getI18n, getLocale } from '$lib/i18n/context';
 	import { listNames } from '$lib/member';
 	import { tvBoard, type NightStanding } from '$lib/standings';
+	import type { TvFeature } from '$lib/server/views';
 	import Poster from '$lib/components/Poster.svelte';
 	import Wheel from '$lib/components/Wheel.svelte';
 
@@ -50,6 +51,8 @@
 	// Each row carries its own `blockedBy`, so the names under a waiting movie
 	// follow the poll without the page tracking the evening separately.
 	let standings: NightStanding[] = $state(untrack(() => data.standings));
+	// Cover and facts for the top two rows, refreshed with every poll.
+	let features: TvFeature[] = $state(untrack(() => data.features));
 	let winner: WinnerView | null = $state(untrack(() => data.winner));
 	let wheelData: { labels: string[]; winnerIndex: number } | null = $state(null);
 	// Events already present when switching on count as seen, only new ones are celebrated.
@@ -63,10 +66,12 @@
 			if (!res.ok) return;
 			const body = (await res.json()) as {
 				standings: NightStanding[];
+				features: TvFeature[];
 				winner: WinnerView | null;
 				lastEvent: TvEvent | null;
 			};
 			standings = body.standings;
+			features = body.features;
 
 			const fresh = body.lastEvent && body.lastEvent.id > seenEventId ? body.lastEvent : null;
 			if (fresh) seenEventId = fresh.id;
@@ -340,6 +345,14 @@
 		return s.blockedBy.length === 0 && candidates.length > 0 && s.tokens === candidates[0].tokens;
 	}
 
+	const featureFor = (movieId: number) => features.find((f) => f.movieId === movieId) ?? null;
+
+	const languageNames = $derived(new Intl.DisplayNames([locale()], { type: 'language' }));
+
+	/** One decimal in the notation of the active language, as on the movie page. */
+	const rating = (value: number) =>
+		value.toLocaleString(locale(), { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
 	const winnerFacts = $derived(
 		winner
 			? [winner.year, winner.runtime ? t('movie.runtimeValue', { n: winner.runtime }) : null, winner.genres]
@@ -418,13 +431,63 @@
 			<ol class="board" style="--fade-start: {fadeStart}%">
 				{#each visible as s, i (s.movieId)}
 					<!-- Whoever carries the highest count is in the lead, on a tie that is
-					     several of them. The crown stays reserved for an outright lead.
-					     A waiting movie is neither: `waiting` beats both. -->
+					     several of them. The gold frame and the crown go to the top row
+					     only; the crown on top of that only for an outright lead. A
+					     waiting movie is neither: `waiting` beats both. -->
 					{@const waiting = s.blockedBy.length > 0}
 					{@const leading = leads(s)}
-					<li class:leader={leading} class:steppedBack={!leading && !waiting} class:waiting>
-						<span class="rank">{i === 0 && uniqueLeader ? '👑' : i + 1}</span>
-						<span class="title">{s.title}</span>
+					{@const f = featureFor(s.movieId)}
+					<li
+						class:leader={leading && i === 0}
+						class:steppedBack={!leading && !waiting}
+						class:waiting
+						class:featured={f}
+					>
+						{#if !f}
+							<span class="rank">{i === 0 && uniqueLeader ? '👑' : i + 1}</span>
+						{/if}
+						{#if f}
+							<!-- The top two get the movie page's first block: cover and facts,
+							     so the room sees what it is voting for, not just a title. -->
+							<div class="fposter">
+								<Poster src={f.poster} title={s.title} size="large" />
+								<span class="rank" class:crown={i === 0 && uniqueLeader}
+									>{i === 0 && uniqueLeader ? '👑' : i + 1}</span
+								>
+							</div>
+							<div class="finfo">
+								<span class="title"
+									>{s.title}{#if f.year}<span class="year">({f.year})</span>{/if}</span
+								>
+								<dl class="facts">
+									{#if f.runtime}<div>
+											<dt>{t('movie.runtime')}</dt>
+											<dd>{t('movie.runtimeValue', { n: f.runtime })}</dd>
+										</div>{/if}
+									{#if f.genres}<div>
+											<dt>{t('movie.genre')}</dt>
+											<dd>{f.genres}</dd>
+										</div>{/if}
+									{#if f.certification !== undefined}<div>
+											<dt>{t('movie.certification')}</dt>
+											<dd>{f.certification ?? '–'}</dd>
+										</div>{/if}
+									{#if f.originalLanguage}<div>
+											<dt>{t('movie.originalLanguage')}</dt>
+											<dd>{languageNames.of(f.originalLanguage) ?? f.originalLanguage}</dd>
+										</div>{/if}
+									{#if f.imdbRating != null}<div>
+											<dt>{t('movie.imdb')}</dt>
+											<dd>★ {rating(f.imdbRating)}</dd>
+										</div>{:else if f.tmdbRating != null}<div>
+											<dt>{t('movie.tmdb')}</dt>
+											<dd>★ {rating(f.tmdbRating)}</dd>
+										</div>{/if}
+								</dl>
+							</div>
+						{:else}
+							<span class="title">{s.title}</span>
+						{/if}
 						{#if waiting}
 							<span class="waitingFor"
 								>{t('evaluation.waitingFor', { names: listNames(data.members, s.blockedBy, locale()) })}</span
@@ -715,6 +778,86 @@
 	.unit {
 		font-size: 0.8em;
 		margin-left: 0.35em;
+	}
+
+	/* The top two rows: cover and facts beside the title. */
+	.board li.featured {
+		align-items: center;
+	}
+
+	/* The stage is always dark, whatever the device's theme: the placeholder for
+	   a missing cover takes the dark tokens, or it would light up on the TV. */
+	.fposter {
+		width: clamp(4.5rem, 11vh, 7.5rem);
+		flex-shrink: 0;
+		--card2: #232a33;
+		--muted: #9aa3ad;
+		position: relative;
+	}
+
+	/* On a featured row the rank sits on the cover's top-left corner instead of
+	   in a column of its own. A solid disc keeps the digit readable on any
+	   cover; the crown needs none. */
+	.fposter .rank {
+		position: absolute;
+		top: 0;
+		left: 0;
+		transform: translate(-35%, -35%);
+		background: #0b0f15;
+		border-color: rgb(255 255 255 / 0.3);
+		box-shadow: 0 2px 8px rgb(0 0 0 / 0.5);
+	}
+
+	.fposter .rank.crown {
+		background: none;
+		border-color: transparent;
+		box-shadow: none;
+		font-size: 1.15em;
+		filter: drop-shadow(0 2px 4px rgb(0 0 0 / 0.6));
+	}
+
+	/* Title and facts start at the top edge of the cover; rank and votes stay
+	   centred on the row. */
+	.finfo {
+		flex: 1;
+		min-width: 0;
+		align-self: flex-start;
+		align-content: start;
+		display: grid;
+		gap: clamp(0.3rem, 0.9vh, 0.6rem);
+		text-align: left;
+		/* The title's line box sits a little above its capitals; this pulls
+		   them level with the top of the cover. */
+		margin-top: -0.25em;
+	}
+
+	.year {
+		margin-left: 0.4em;
+		font-size: 0.7em;
+		font-weight: 400;
+		color: #8d99ab;
+	}
+
+	/* One fact per line with the labels in a column, as on the movie page. */
+	.facts {
+		margin: 0;
+		display: grid;
+		gap: 0.25em;
+		font-size: clamp(0.8rem, 1.8vh, 1.05rem);
+	}
+
+	.facts div {
+		display: flex;
+		gap: 0.5em;
+	}
+
+	.facts dt {
+		color: #8d99ab;
+		min-width: 8.5em;
+	}
+
+	.facts dd {
+		margin: 0;
 	}
 
 	/* Winner celebration */

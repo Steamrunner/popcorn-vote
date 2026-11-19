@@ -1,7 +1,7 @@
 import type { DB } from './db';
 import type { AppConfig } from './config';
 import type { MovieRow } from './game';
-import { byTokensThenTitle } from '$lib/standings';
+import { byTokensThenTitle, tvBoard, type NightStanding } from '$lib/standings';
 import { getBalance } from './game';
 
 export interface StakeInfo {
@@ -72,6 +72,48 @@ export function listMovies(db: DB): MovieView[] {
 	// The same comparison as for the evaluation page and the TV board, so that the
 	// order on a tie is identical everywhere.
 	return rows.map((r) => toView(db, r)).sort(byTokensThenTitle);
+}
+
+/** What the TV shows beside the title of a leading movie: the movie page's first block. */
+export interface TvFeature {
+	movieId: number;
+	poster: string | null;
+	year: number | null;
+	runtime: number | null;
+	genres: string | null;
+	/** `undefined` for manual entries: they never had an age rating to show. */
+	certification: string | null | undefined;
+	originalLanguage: string | null;
+	imdbRating: number | null;
+	tmdbRating: number | null;
+}
+
+/**
+ * Cover and facts for the first `count` rows of the TV board. Only for those:
+ * the stage is polled every few seconds, and the rows below the top carry a
+ * title and a count, nothing more.
+ */
+export function tvFeatures(db: DB, standings: NightStanding[], count = 2): TvFeature[] {
+	const select = db.prepare("SELECT * FROM movies WHERE id = ? AND status = 'list'");
+	return tvBoard(standings)
+		.slice(0, count)
+		.flatMap((s) => {
+			const row = select.get(s.movieId) as MovieRow | undefined;
+			if (!row) return [];
+			return [
+				{
+					movieId: row.id,
+					poster: row.poster_file ? `/covers/${row.poster_file}` : null,
+					year: row.year,
+					runtime: row.runtime,
+					genres: row.genres,
+					certification: row.tmdb_id != null ? row.certification : undefined,
+					originalLanguage: row.original_language,
+					imdbRating: row.imdb_rating,
+					tmdbRating: row.tmdb_rating
+				}
+			];
+		});
 }
 
 export function winnerMovie(db: DB): MovieView | null {

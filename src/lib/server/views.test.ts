@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { createDb, type DB } from './db';
-import { standings } from './game';
-import { archiveMovies, listMovies, latestEvent } from './views';
+import { nightStandings, standings } from './game';
+import { archiveMovies, listMovies, latestEvent, tvFeatures } from './views';
 
 let db: DB;
 
@@ -132,5 +132,38 @@ describe('latest event for the TV', () => {
 		addEvent('evaluation');
 		addEvent('proposer_changed');
 		expect(latestEvent(db)?.type).toBe('evaluation');
+	});
+});
+
+describe('tvFeatures', () => {
+	it('returns cover and facts for the top two rows of the board only', () => {
+		const low = addMovie('Low', 1);
+		const top = addMovie('Top', 5);
+		const mid = addMovie('Mid', 3);
+		db.prepare(
+			"UPDATE movies SET tmdb_id = 1, year = 1999, runtime = 136, genres = 'Sci-Fi', certification = '12', poster_file = 'top.jpg', imdb_rating = 8.7 WHERE id = ?"
+		).run(top);
+		const features = tvFeatures(db, nightStandings(db, []));
+		expect(features.map((f) => f.movieId)).toEqual([top, mid]);
+		expect(features[0]).toMatchObject({
+			poster: '/covers/top.jpg',
+			year: 1999,
+			runtime: 136,
+			genres: 'Sci-Fi',
+			certification: '12',
+			imdbRating: 8.7
+		});
+		expect(features.some((f) => f.movieId === low)).toBe(false);
+	});
+
+	it('leaves the age rating out for manual entries', () => {
+		addMovie('By hand', 2);
+		const [feature] = tvFeatures(db, nightStandings(db, []));
+		expect(feature.certification).toBeUndefined();
+	});
+
+	it('skips movies without votes, as the board does', () => {
+		addMovie('Nobody wants it', 0);
+		expect(tvFeatures(db, nightStandings(db, []))).toEqual([]);
 	});
 });
