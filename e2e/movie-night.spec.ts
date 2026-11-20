@@ -104,7 +104,9 @@ test('the TV view shows the standings without the app frame', async ({ page, bro
 	await page.goto('/tv');
 	await expect(page.getByText('Popcorn Vote', { exact: false }).first()).toBeVisible();
 	await expect(page.getByRole('heading', { name: 'Current standings' })).toBeVisible();
-	await expect(page.getByText('TV-Favourite')).toBeVisible();
+	// One row, even though the title shows twice in it: the top two rows carry
+	// a cover, and a missing cover's placeholder repeats the title.
+	await expect(page.getByRole('listitem').filter({ hasText: 'TV-Favourite' })).toHaveCount(1);
 	// The movie without votes stays off the screen.
 	await expect(page.getByText('TV-Leftover')).toHaveCount(0);
 	// no app menu on the TV stage

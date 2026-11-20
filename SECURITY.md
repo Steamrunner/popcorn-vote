@@ -41,7 +41,8 @@ thin:
 
 ### In scope
 
-Anything that lets someone **without a valid account PIN** get in or extract data:
+Anything that lets someone **without a valid account PIN** get in or extract data
+beyond what the TV view deliberately shows:
 authentication bypass, cookie forgery, defeating the brute-force throttle, path
 traversal in the cover route, SQL injection, XSS or CSP bypass, SSRF through the
 movie-database lookups, remote code execution, or a leak of the API keys or the
@@ -62,7 +63,10 @@ PIN into logs, error pages, or API responses.
 
 Two things matter more than everything else in this file: put the app behind
 HTTPS, and do not choose `1234` as a PIN. Without an account, only first-run
-setup and `/healthz` answer. Keep the container up to date;
+setup, `/healthz` and the read-only TV view (`/tv`, `/api/tv` and the cover
+images) answer. The TV view shows the standings, the winner, the instance
+title and the family members' names to anyone who can reach the address, so
+an installation reachable from the internet shows them to the internet too. Keep the container up to date;
 `latest` is rebuilt on every release, and the [installation
 example](docs/installation-example.md) shows one way to pull new versions
 automatically.

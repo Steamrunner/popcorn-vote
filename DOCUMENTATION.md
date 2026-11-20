@@ -249,9 +249,8 @@ Here is how it gets onto the television:
   in landscape and full screen; the phone stays on, which the TV mode takes
   care of. Incoming notifications appear on the television too – the way
   around that is **↗**: it opens the stage in full Chrome, where **"Cast…"**
-  in the menu streams just this tab. If Chrome has never opened the app
-  before – say the install came from another browser – it asks for the PIN
-  once, like any new device.
+  in the menu streams just this tab. The TV view needs no PIN, so this works
+  even if Chrome has never opened the app before.
 - **With Chromecast, from the browser:** open the TV view on your phone in
   Chrome, tap **⛶**, then choose **"Cast…"** from the Chrome menu and select
   the Chromecast. The phone streams the tab; just put it down and vote from
@@ -260,10 +259,15 @@ Here is how it gets onto the television:
   through the Control Centre's **screen mirroring** onto an Apple TV. A
   Chromecast cannot be reached from an iPhone without extra apps.
 - **Directly on Google TV:** in a TV browser (e.g. TV Bro), open the app's
-  address, enter the PIN once, and choose **More → TV view**.
+  address followed by `/tv` (for example `http://192.168.1.50:3000/tv`). No
+  PIN is needed for the TV view.
 
 Voting and evaluating still happen on the phone – the TV view is purely a
-display and cannot break anything.
+display and cannot break anything. That is also why it opens **without the
+PIN**: anyone who can reach the address sees the standings, the winner, the
+family name and the names of the family members, but cannot change anything.
+Leaving the TV view with ✕ leads to the PIN page on a device that has not
+signed in.
 
 It does follow the evening, though. Tap somebody off on a phone and the
 television recounts within a few seconds: their films step to the bottom of

@@ -63,6 +63,20 @@ function isOpen(pathname: string): boolean {
 	);
 }
 
+/**
+ * The TV stage is watched without signing in: a television, a Chromecast tab
+ * or a guest's laptop should not need the family PIN just to show the
+ * standings. What it shows is read-only (standings, the winner, the family's
+ * title and names) and the covers it needs come along. Everything that changes
+ * something stays behind the PIN.
+ *
+ * Kept apart from OPEN_PATHS on purpose: those stay reachable even while setup
+ * is due or locked, the stage only once the installation is set up.
+ */
+export function isPublicStage(pathname: string): boolean {
+	return pathname === '/tv' || pathname === '/api/tv' || pathname.startsWith('/covers/');
+}
+
 let missingAuthLogged = false;
 
 export function shouldRenewAuth(pathname: string, method: string): boolean {
@@ -108,7 +122,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		throw redirect(307, '/setup');
 	}
 	if (!setupRequired && pathname === '/setup') throw redirect(307, authed ? '/' : '/pin');
-	if (!authed && !isOpen(pathname)) {
+	if (!authed && !isOpen(pathname) && !isPublicStage(pathname)) {
 		if (pathname.startsWith('/api/') || pathname.startsWith('/covers/')) {
 			return json({ error: event.locals.t('auth.required') }, { status: 401 });
 		}

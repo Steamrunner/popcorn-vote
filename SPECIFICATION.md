@@ -72,6 +72,11 @@ device cookie; changing an account PIN invalidates that account's cookies.
 Failed attempts are throttled per sender address with an installation-wide
 fallback limit. The former shared `PV_PIN` remains a migration path.
 
+The TV view, its data endpoint and the cover images are reachable without a
+PIN. They are read-only and show the standings, the winner, the instance title
+and the family members' names; everything that changes state stays behind the
+PIN.
+
 The PIN is suitable only for a trusted household. Public deployments must use
 HTTPS via a reverse proxy. A local-network HTTP deployment is supported, but its
 traffic, including the PIN, is readable on that network.
