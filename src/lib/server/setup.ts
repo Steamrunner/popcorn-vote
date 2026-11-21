@@ -3,7 +3,7 @@ import type { DB } from './db';
 import { metaGet } from './db';
 
 export function authenticationMissing(config: AppConfig): boolean {
-	return config.users.length === 0 && !config.pin;
+	return config.users.length === 0 && !config.pin && !config.openAccess;
 }
 
 /** Setup is safe only before this database has ever been used or authenticated. */

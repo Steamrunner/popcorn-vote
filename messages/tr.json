@@ -344,6 +344,8 @@
 	"setup.headline": "Herkes davetli.",
 	"setup.intro": "Hesap gerekmez. Ailenizi ayarlayın, ortak bir PIN belirleyin ve oylamaya başlayın.",
 	"setup.pinHint": "4 rakam. Bu, ailenizin ortak PIN’idir; kişisel bir hesap değildir.",
+	"setup.noPin": "PIN yok",
+	"setup.noPinHint": "Uygulamaya ulaşan herkes onu PIN olmadan, ayarlar dahil kullanır. Bunu yalnızca güvendiğin bir ev ağında seç.",
 	"setup.welcome": "Hoş geldiniz",
 	"setup.addMember": "Aile üyesi ekle",
 	"setup.complete": "Film gecesini başlat",

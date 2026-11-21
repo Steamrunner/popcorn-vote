@@ -66,6 +66,13 @@ across the address cannot get in. The device remembers the sign-in until the
 configured inactivity timeout expires. On a phone, the digits are tapped on the
 number pad; anyone with a keyboard can type them directly (⌫ removes a digit).
 
+**No PIN at all.** First-run setup has a **No PIN** option. With it, every
+device opens the app straight away, settings included, and nobody ever sees the
+PIN page. Choose it only on a home network you trust, never on an installation
+reachable from the internet. It is written as `pin: none` in `config.yaml`;
+`PV_PIN=none` does the same, and a four-digit PIN there switches the protection
+back on.
+
 Anyone who enters the PIN wrong a few times has to wait between attempts –
 first 2 seconds, then 4, then 8, and so on, up to a maximum of five minutes.
 For the family this is barely noticeable; anyone trying to work through all
@@ -607,7 +614,7 @@ contains:
   change it!), a display name (changeable at any time), a colour, and an
   emoji. The fixed identifier ensures that renaming someone never loses
   their votes or ratings.
-- **The PIN** (`pin`), four digits.
+- **The PIN** (`pin`), four digits, or `none` to switch it off.
 - **The vote rules** (`token` – the block kept its old name): weekday,
   time, and amount of the credit, the cap, the opening balance. Default:
   Sunday, 8 a.m., one vote, cap of five, opening balance of three.

@@ -42,7 +42,8 @@ export function publicSettings(config: App.Locals['config']) {
 		.filter(([, source]) => !['config.yaml', 'default', 'demo', 'missing', 'none'].includes(source))
 		.map(([setting, variable]) => ({ setting, variable }));
 	return {
-		sharedFamilyPin: config.users.length === 0 && Boolean(config.pin),
+		// Open access hides the accounts tab as well: there is nobody to sign in.
+		sharedFamilyPin: config.users.length === 0 && (Boolean(config.pin) || config.openAccess),
 		general: {
 			title: {
 				value: config.title,

@@ -72,6 +72,11 @@ device cookie; changing an account PIN invalidates that account's cookies.
 Failed attempts are throttled per sender address with an installation-wide
 fallback limit. The former shared `PV_PIN` remains a migration path.
 
+First-run setup can switch the PIN off instead (`pin: none`, or `PV_PIN=none`).
+Every device then counts as signed in with administrator rights and no cookie
+is issued. This suits only a home network whose members all belong to the
+family.
+
 The TV view, its data endpoint and the cover images are reachable without a
 PIN. They are read-only and show the standings, the winner, the instance title
 and the family members' names; everything that changes state stays behind the

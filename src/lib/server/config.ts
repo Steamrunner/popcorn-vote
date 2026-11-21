@@ -77,6 +77,11 @@ export interface AppConfig {
 	omdbKeyState: ConfiguredKeyState;
 	/** Four-digit device PIN; empty = not configured, the app stays locked. */
 	pin: string;
+	/**
+	 * No PIN at all: `pin: none` in config.yaml or `PV_PIN=none`. Every device
+	 * counts as signed in. Meant for a home network the family trusts.
+	 */
+	openAccess: boolean;
 	/** Named accounts managed through the settings UI. Empty keeps legacy PIN auth. */
 	users: ConfigUser[];
 	/** Source names are safe to expose; values never are. */
@@ -527,28 +532,36 @@ function choose<T>(
 	return fallbackValue;
 }
 
+/** The word that switches the PIN off, in PV_PIN or as `pin:` in config.yaml. */
+export const NO_PIN = 'none';
+
 /**
- * Finds the first usable PIN from the environment and the file.
+ * Finds the first usable PIN setting from the environment and the file: four
+ * digits, or `none` for open access.
  *
  * Deliberately not "the environment always wins": a placeholder such as `NNNN`
  * from a Compose default would otherwise displace a usable PIN from config.yaml
  * and lock out the whole family, in an app whose only way in is the PIN, the
  * most expensive misconfiguration imaginable.
  */
-function choosePin(origins: Origins, raw: Record<string, unknown>): string {
+function choosePinSetting(
+	origins: Origins,
+	raw: Record<string, unknown>
+): { pin: string; openAccess: boolean } {
 	const candidates = [
 		{ value: env('PV_PIN') ?? '', source: 'PV_PIN' },
 		{ value: raw.pin == null ? '' : String(raw.pin).trim(), source: 'config.yaml' }
 	].filter((k) => k.value.length > 0);
 
-	const isValid = (value: string) => /^\d{4}$/.test(value);
+	const isOff = (value: string) => value.toLowerCase() === NO_PIN;
+	const isValid = (value: string) => /^\d{4}$/.test(value) || isOff(value);
 	const valid = candidates.find((k) => isValid(k.value));
 	// Report only what is genuinely unusable. A usable PIN that merely loses
 	// precedence is reported further down as "configured twice", here it would
 	// otherwise stand accused of being broken.
 	for (const k of candidates) {
 		if (!isValid(k.value)) {
-			log.warn(`PIN from ${k.source} is unusable (four digits required) and is ignored`);
+			log.warn(`PIN from ${k.source} is unusable (four digits or "${NO_PIN}" required) and is ignored`);
 		}
 	}
 
@@ -559,13 +572,19 @@ function choosePin(origins: Origins, raw: Record<string, unknown>): string {
 			log.info('No authentication configured yet. First-run setup is available.');
 		}
 		origins['PIN'] = 'missing';
-		return '';
+		return { pin: '', openAccess: false };
 	}
 	if (candidates.length > 1) {
 		log.warn(`PIN is configured twice. ${valid.source} wins`);
 	}
 	origins['PIN'] = valid.source;
-	return valid.value;
+	if (isOff(valid.value)) {
+		log.warn(
+			`The PIN is switched off (${valid.source}). Everyone who can reach the app can use it, settings included.`
+		);
+		return { pin: '', openAccess: true };
+	}
+	return { pin: valid.value, openAccess: false };
 }
 
 /**
@@ -575,7 +594,7 @@ function choosePin(origins: Origins, raw: Record<string, unknown>): string {
  * Deliberately not through `choose()`: both candidates are adapter-node's own
  * variables rather than ours, there is no `config.yaml` counterpart to weigh
  * against, and they are not two sources for one value but two different kinds of
- * proof. `choosePin` above is the same shape for the same reason.
+ * proof. `choosePinSetting` above is the same shape for the same reason.
  *
  * `PROTOCOL_HEADER` wins over `ORIGIN` because it is the more precise of the
  * two: it judges each request on what it carries, while `ORIGIN` speaks for all
@@ -925,7 +944,7 @@ export function loadConfig(force = false): AppConfig {
 		omdbApiKey,
 		tmdbKeyState: configuredKeyState(tmdbApiKey, tmdbCandidates),
 		omdbKeyState: configuredKeyState(omdbApiKey, omdbCandidates),
-		pin: choosePin(origins, raw),
+		...choosePinSetting(origins, raw),
 		users,
 		origins,
 		configFile: file,

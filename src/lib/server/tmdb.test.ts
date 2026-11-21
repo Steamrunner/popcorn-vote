@@ -43,6 +43,7 @@ const base: AppConfig = {
 	tmdbKeyState: 'ok',
 	omdbKeyState: 'missing',
 	pin: '1234',
+	openAccess: false,
 	dataDir: '/tmp/pv-test',
 	httpsProof: { mode: 'none' },
 	sessionTimeout: 31_536_000,

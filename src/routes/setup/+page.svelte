@@ -17,6 +17,7 @@
 	let members = $state(['']);
 	let pin = $state('');
 	let confirmPin = $state('');
+	let noPin = $state(false);
 	let tokenAmount = $state(1);
 	let tokenWeekday = $state(0);
 	let tokenHour = $state(8);
@@ -117,10 +118,10 @@
 		if (!title.trim()) {
 			return fail(t('settings.errorInstanceName'), '#setup-instance-name');
 		}
-		if (!/^\d{4}$/.test(pin)) {
+		if (!noPin && !/^\d{4}$/.test(pin)) {
 			return fail(t('settings.errorPin'), '#setup-family-pin');
 		}
-		if (pin !== confirmPin) {
+		if (!noPin && pin !== confirmPin) {
 			return fail(t('settings.errorPinMismatch'), '#setup-confirm-pin');
 		}
 		const cleanedMembers = members.map((member) => member.trim());
@@ -158,8 +159,9 @@
 				body: JSON.stringify({
 					title,
 					members,
-					pin,
-					confirmPin,
+					pin: noPin ? '' : pin,
+					confirmPin: noPin ? '' : confirmPin,
+					noPin,
 					tokenAmount,
 					tokenWeekday,
 					tokenHour,
@@ -213,34 +215,46 @@
 							maxlength="80"
 						/></label
 					>
-					<label
-						>{t('setup.familyPin')}<input
-							id="setup-family-pin"
-							value={pin}
-							oninput={pinInput}
-							type="password"
-							inputmode="numeric"
-							maxlength="4"
-							autocomplete="new-password"
-							aria-describedby="family-pin-hint setup-error"
-							aria-invalid={error === t('settings.errorPin')}
-						/></label
-					>
-					<label
-						>{t('settings.confirmPin')}<input
-							id="setup-confirm-pin"
-							value={confirmPin}
-							oninput={(event) => pinInput(event, true)}
-							type="password"
-							inputmode="numeric"
-							maxlength="4"
-							autocomplete="new-password"
-							aria-describedby="family-pin-hint setup-error"
-							aria-invalid={error === t('settings.errorPinMismatch')}
-						/></label
-					>
+					{#if !noPin}<label
+							>{t('setup.familyPin')}<input
+								id="setup-family-pin"
+								value={pin}
+								oninput={pinInput}
+								type="password"
+								inputmode="numeric"
+								maxlength="4"
+								autocomplete="new-password"
+								aria-describedby="family-pin-hint setup-error"
+								aria-invalid={error === t('settings.errorPin')}
+							/></label
+						>
+						<label
+							>{t('settings.confirmPin')}<input
+								id="setup-confirm-pin"
+								value={confirmPin}
+								oninput={(event) => pinInput(event, true)}
+								type="password"
+								inputmode="numeric"
+								maxlength="4"
+								autocomplete="new-password"
+								aria-describedby="family-pin-hint setup-error"
+								aria-invalid={error === t('settings.errorPinMismatch')}
+							/></label
+						>{/if}
 				</div>
-				<p class="hint" id="family-pin-hint">{t('setup.pinHint')}</p>
+				{#if !noPin}<p class="hint" id="family-pin-hint">{t('setup.pinHint')}</p>{/if}
+				<label class="check"
+					><input
+						id="setup-no-pin"
+						type="checkbox"
+						bind:checked={noPin}
+						onchange={() => {
+							if (error === t('settings.errorPin') || error === t('settings.errorPinMismatch')) error = '';
+						}}
+						aria-describedby="no-pin-hint"
+					/>{t('setup.noPin')}</label
+				>
+				<p class="hint" id="no-pin-hint">{t('setup.noPinHint')}</p>
 				{#if error === t('settings.errorPin') || error === t('settings.errorPinMismatch')}
 					<p class="inline-error" id="setup-error" role="alert">{error}</p>
 				{/if}
@@ -551,6 +565,19 @@
 		color: #59636c;
 		font-size: 0.78rem;
 		line-height: 1.5;
+	}
+	.check {
+		display: flex;
+		align-items: center;
+		gap: 0.55rem;
+		cursor: pointer;
+	}
+	.ticket .check :global(input) {
+		width: 1.15rem;
+		min-height: 1.15rem;
+		margin: 0;
+		padding: 0;
+		accent-color: #08736f;
 	}
 	.inline-error {
 		margin: 0;

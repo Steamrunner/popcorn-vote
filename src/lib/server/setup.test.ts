@@ -13,6 +13,9 @@ describe('first-run setup gate', () => {
 	it('opens only with no configured authentication and a pristine database', () => {
 		expect(authenticationMissing({ users: [], pin: '' } as unknown as AppConfig)).toBe(true);
 		expect(authenticationMissing({ users: [], pin: '2611' } as unknown as AppConfig)).toBe(false);
+		expect(authenticationMissing({ users: [], pin: '', openAccess: true } as unknown as AppConfig)).toBe(
+			false
+		);
 		expect(pristineForSetup(db)).toBe(true);
 	});
 

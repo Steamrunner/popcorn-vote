@@ -344,6 +344,8 @@
 	"setup.headline": "Everyone’s invited.",
 	"setup.intro": "No account required. Set up your family, agree on one shared PIN, and start voting.",
 	"setup.pinHint": "4 digits. This is the one shared PIN for your family, not a personal account.",
+	"setup.noPin": "No PIN",
+	"setup.noPinHint": "Everyone who can reach the app uses it without a PIN, settings included. Only choose this on a home network you trust.",
 	"setup.welcome": "Welcome",
 	"setup.addMember": "Add family member",
 	"setup.complete": "Start movie night",

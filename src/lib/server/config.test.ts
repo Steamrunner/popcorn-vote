@@ -630,6 +630,30 @@ describe('PIN selection', () => {
 	it('locks the app without any PIN', () => {
 		expect(load('without-pin.yaml').pin).toBe('');
 	});
+
+	it('switches the PIN off with `none` in the file', () => {
+		const config = load('pin-none.yaml');
+		expect(config.openAccess).toBe(true);
+		expect(config.pin).toBe('');
+	});
+
+	it('switches the PIN off with PV_PIN=none, in any case', () => {
+		process.env.PV_PIN = 'None';
+		const config = load('pin-only.yaml');
+		expect(config.openAccess).toBe(true);
+		expect(config.pin).toBe('');
+	});
+
+	it('lets a PIN from the environment close an open file again', () => {
+		process.env.PV_PIN = '9876';
+		const config = load('pin-none.yaml');
+		expect(config.openAccess).toBe(false);
+		expect(config.pin).toBe('9876');
+	});
+
+	it('keeps the PIN on without the setting', () => {
+		expect(load('pin-only.yaml').openAccess).toBe(false);
+	});
 });
 
 describe('named users', () => {

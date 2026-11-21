@@ -1,8 +1,8 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { AUTH_COOKIE, cookieValue } from '$lib/server/auth';
+import { AUTH_COOKIE, cookieValue, ensureAuthSecret } from '$lib/server/auth';
 import { saveInitialSetup } from '$lib/server/config-service';
-import { loadConfig } from '$lib/server/config';
+import { loadConfig, NO_PIN } from '$lib/server/config';
 import { authCookie } from '$lib/server/cookies';
 import { authenticationMissing, pristineForSetup } from '$lib/server/setup';
 import { seedDemoMovies } from '$lib/server/demo';
@@ -17,6 +17,7 @@ export const POST: RequestHandler = async ({ request, locals, cookies }) => {
 	const body = (await request.json().catch(() => ({}))) as {
 		pin?: string;
 		confirmPin?: string;
+		noPin?: unknown;
 		title?: string;
 		members?: unknown;
 		tokenAmount?: unknown;
@@ -37,9 +38,15 @@ export const POST: RequestHandler = async ({ request, locals, cookies }) => {
 	const current = loadConfig(true);
 	if (!authenticationMissing(current))
 		return json({ error: locals.t('setup.errorComplete') }, { status: 409 });
+	// `noPin: true` switches the PIN off: every device can use the app. Only a
+	// real `true` counts, so that a stray value never opens the installation.
+	const noPin = body.noPin === true;
 	const pin = String(body.pin ?? '');
-	if (!/^\d{4}$/.test(pin)) return json({ error: locals.t('settings.errorPin') }, { status: 400 });
-	if (pin !== body.confirmPin) return json({ error: locals.t('settings.errorPinMismatch') }, { status: 400 });
+	if (!noPin) {
+		if (!/^\d{4}$/.test(pin)) return json({ error: locals.t('settings.errorPin') }, { status: 400 });
+		if (pin !== body.confirmPin)
+			return json({ error: locals.t('settings.errorPinMismatch') }, { status: 400 });
+	}
 	const title = String(body.title ?? '').trim();
 	const members = Array.isArray(body.members)
 		? body.members.map((member) => String(member).trim()).filter(Boolean)
@@ -124,7 +131,7 @@ export const POST: RequestHandler = async ({ request, locals, cookies }) => {
 		return json({ error: locals.t('settings.errorTimezone') }, { status: 400 });
 	}
 	saveInitialSetup({
-		pin,
+		pin: noPin ? NO_PIN : pin,
 		title,
 		members,
 		tokenAmount,
@@ -144,7 +151,14 @@ export const POST: RequestHandler = async ({ request, locals, cookies }) => {
 	});
 	const config = loadConfig();
 	ensureBalances(locals.db, config);
-	cookies.set(AUTH_COOKIE, cookieValue(locals.db, config), authCookie(config, request.headers));
+	if (config.openAccess) {
+		// No cookie to hand out, but the data store has to count as set up all
+		// the same: should the setting ever go missing, the lockdown protects the
+		// family's data instead of offering setup to whoever comes first.
+		ensureAuthSecret(locals.db);
+	} else {
+		cookies.set(AUTH_COOKIE, cookieValue(locals.db, config), authCookie(config, request.headers));
+	}
 	void seedDemoMovies(locals.db, config).catch((err) =>
 		log.warn('Demo content could not be created', { err })
 	);

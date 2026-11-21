@@ -344,6 +344,8 @@
 	"setup.headline": "Alle sind eingeladen.",
 	"setup.intro": "Keine Konten nötig. Richte deine Familie ein, lege einen gemeinsamen PIN fest und starte die Abstimmung.",
 	"setup.pinHint": "4 Ziffern. Das ist der gemeinsame PIN für deine Familie, kein persönliches Konto.",
+	"setup.noPin": "Keine PIN",
+	"setup.noPinHint": "Alle, die die App erreichen, nutzen sie ohne PIN, auch die Einstellungen. Wähle das nur in einem Heimnetz, dem du vertraust.",
 	"setup.welcome": "Willkommen",
 	"setup.addMember": "Familienmitglied hinzufügen",
 	"setup.complete": "Filmabend starten",

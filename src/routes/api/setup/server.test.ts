@@ -6,13 +6,18 @@ import { saveInitialSetup } from '$lib/server/config-service';
 import { createDb, metaSet } from '$lib/server/db';
 import { ensureBalances } from '$lib/server/game';
 import { translator } from '$lib/i18n/translate';
+import { ensureAuthSecret } from '$lib/server/auth';
 import { POST } from './+server';
 
-vi.mock('$lib/server/config', () => ({ loadConfig: vi.fn() }));
+vi.mock('$lib/server/config', () => ({ loadConfig: vi.fn(), NO_PIN: 'none' }));
 vi.mock('$lib/server/config-service', () => ({ saveInitialSetup: vi.fn() }));
 vi.mock('$lib/server/game', () => ({ ensureBalances: vi.fn() }));
 vi.mock('$lib/server/demo', () => ({ seedDemoMovies: vi.fn(() => Promise.resolve()) }));
-vi.mock('$lib/server/auth', () => ({ AUTH_COOKIE: 'pv_auth', cookieValue: vi.fn(() => 'auth-cookie') }));
+vi.mock('$lib/server/auth', () => ({
+	AUTH_COOKIE: 'pv_auth',
+	cookieValue: vi.fn(() => 'auth-cookie'),
+	ensureAuthSecret: vi.fn()
+}));
 vi.mock('$lib/server/cookies', () => ({ authCookie: vi.fn(() => ({ path: '/' })) }));
 
 const currentConfig = {
@@ -114,5 +119,23 @@ describe('POST /api/setup', () => {
 		);
 		expect(ensureBalances).toHaveBeenCalledWith(requestEvent.locals.db, currentConfig);
 		expect(requestEvent.cookies.set).toHaveBeenCalledWith('pv_auth', 'auth-cookie', { path: '/' });
+	});
+
+	it('switches the PIN off without asking for one, and hands out no cookie', async () => {
+		const openConfig = { ...currentConfig, openAccess: true } as AppConfig;
+		vi.mocked(loadConfig).mockReturnValueOnce(currentConfig).mockReturnValueOnce(openConfig);
+		const requestEvent = event({ ...validBody, pin: '', confirmPin: '', noPin: true });
+		const response = await POST(requestEvent);
+
+		expect(response.status).toBe(200);
+		expect(saveInitialSetup).toHaveBeenCalledWith(expect.objectContaining({ pin: 'none' }));
+		expect(requestEvent.cookies.set).not.toHaveBeenCalled();
+		expect(ensureAuthSecret).toHaveBeenCalledWith(requestEvent.locals.db);
+	});
+
+	it('takes only a real true as the switch', async () => {
+		const response = await POST(event({ ...validBody, pin: '', confirmPin: '', noPin: 'yes' }));
+		expect(response.status).toBe(400);
+		expect(saveInitialSetup).not.toHaveBeenCalled();
 	});
 });

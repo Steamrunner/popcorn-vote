@@ -55,6 +55,23 @@ function authSecret(db: DB): string {
 	return secret;
 }
 
+/** Creates the installation secret if it does not exist yet. Marks the data store as set up. */
+export function ensureAuthSecret(db: DB): void {
+	authSecret(db);
+}
+
+/**
+ * Who every request is when the PIN is switched off (`openAccess`): the same
+ * administrator the shared family PIN signs in, without the cookie.
+ */
+export const OPEN_ACCESS_USER: AuthUser = {
+	kind: 'legacy',
+	id: 'legacy',
+	name: 'Administrator',
+	role: 'admin',
+	pinHash: ''
+};
+
 /** Cookie value for the current PIN. Change the PIN and every device is signed out. */
 export function cookieValue(db: DB, config: AppConfig, issuedAt = Math.floor(Date.now() / 1000)): string {
 	return legacyCookieValue(db, config, issuedAt);

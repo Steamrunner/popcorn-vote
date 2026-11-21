@@ -6,7 +6,13 @@ import { ensureBalances } from '$lib/server/game';
 import { startScheduler } from '$lib/server/schedule';
 import { seedDemoMovies } from '$lib/server/demo';
 import { log } from '$lib/server/log';
-import { AUTH_COOKIE, authenticatedUser, cookieValue, userCookieValue } from '$lib/server/auth';
+import {
+	AUTH_COOKIE,
+	OPEN_ACCESS_USER,
+	authenticatedUser,
+	cookieValue,
+	userCookieValue
+} from '$lib/server/auth';
 import { authCookie as authCookieOptions, deviceCookie } from '$lib/server/cookies';
 import { logFailure, shortPath } from '$lib/server/api';
 import { LANG_COOKIE, resolveLocale } from '$lib/i18n/locales';
@@ -95,9 +101,12 @@ export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.locale = locale;
 	event.locals.t = translator(locale);
 
-	// Device PIN: once per device, after that everything is open.
+	// Device PIN: once per device, after that everything is open. With the PIN
+	// switched off (`pin: none`) every device counts as signed in from the start.
 	const pathname = event.url.pathname;
-	const user = authenticatedUser(event.locals.db, config, event.cookies.get(AUTH_COOKIE));
+	const user = config.openAccess
+		? OPEN_ACCESS_USER
+		: authenticatedUser(event.locals.db, config, event.cookies.get(AUTH_COOKIE));
 	const authed = user !== null;
 	event.locals.authed = authed;
 	event.locals.user = user;
@@ -131,7 +140,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	if (authed && pathname === '/pin') {
 		throw redirect(307, '/');
 	}
-	if (user && shouldRenewAuth(pathname, event.request.method)) {
+	if (user && !config.openAccess && shouldRenewAuth(pathname, event.request.method)) {
 		const renewed =
 			user.kind === 'legacy'
 				? cookieValue(event.locals.db, config)

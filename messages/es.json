@@ -344,6 +344,8 @@
 	"setup.headline": "Todo el mundo está invitado.",
 	"setup.intro": "No hace falta ninguna cuenta. Configurad vuestra familia, acordad un PIN compartido y empezad a votar.",
 	"setup.pinHint": "4 dígitos. Es el PIN compartido de vuestra familia, no una cuenta personal.",
+	"setup.noPin": "Sin PIN",
+	"setup.noPinHint": "Cualquiera que llegue a la app la usa sin PIN, incluidos los ajustes. Elige esto solo en una red doméstica de confianza.",
 	"setup.welcome": "Bienvenido",
 	"setup.addMember": "Añadir familiar",
 	"setup.complete": "Empezar la noche de cine",

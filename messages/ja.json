@@ -337,6 +337,8 @@
 	"setup.headline": "みんなで参加できます。",
 	"setup.intro": "アカウントは不要です。家族を登録し、共通PINを決めて投票を始めましょう。",
 	"setup.pinHint": "4桁。個人アカウントではなく、家族で共有するPINです。",
+	"setup.noPin": "PINなし",
+	"setup.noPinHint": "アプリにアクセスできる人は誰でも、設定を含めてPINなしで使えます。信頼できる家庭内ネットワークでのみ選んでください。",
 	"setup.welcome": "ようこそ",
 	"setup.addMember": "家族を追加",
 	"setup.complete": "映画の夜を始める",

@@ -29,6 +29,9 @@ thin:
 	PINs are stored as salted scrypt hashes, failed attempts are throttled per IP
 	address with a growing delay plus a global fallback limit, and a signed cookie
 	remembers a successful login. Changing an account PIN invalidates its cookies.
+- **The PIN can be switched off.** With `pin: none` (or `PV_PIN=none`), chosen
+	in first-run setup or set by the operator, every request counts as an
+	administrator. That is a deliberate operator choice, not a vulnerability.
 - **Accounts are access roles, not voting identities.** Picking a person in the
 	app remains a convenience. An authenticated family member can spend anyone's
 	votes; inside a trusted household that is the point.
@@ -62,7 +65,8 @@ PIN into logs, error pages, or API responses.
 ## For operators
 
 Two things matter more than everything else in this file: put the app behind
-HTTPS, and do not choose `1234` as a PIN. Without an account, only first-run
+HTTPS, and do not choose `1234` as a PIN. Never switch the PIN off (`none`) on
+an installation reachable from the internet. Without an account, only first-run
 setup, `/healthz` and the read-only TV view (`/tv`, `/api/tv` and the cover
 images) answer. The TV view shows the standings, the winner, the instance
 title and the family members' names to anyone who can reach the address, so

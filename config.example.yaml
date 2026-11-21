@@ -41,6 +41,8 @@ members:
 # the browser and do not need this value. Existing installations keep working;
 # sign in with this PIN and create the first named account under Settings.
 # Better set through the PV_PIN environment variable and leave this line out.
+# `none` switches the PIN off: everyone who can reach the app can use it,
+# settings included. Only for a home network you trust.
 pin: 'NNNN'
 
 # Named accounts are normally managed through Settings and written here with a
