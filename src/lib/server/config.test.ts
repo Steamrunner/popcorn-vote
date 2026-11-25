@@ -20,6 +20,7 @@ const SETTINGS = [
 	'PIN',
 	'TITLE',
 	'MEMBERS',
+	'MEMBERS_URL',
 	'SOURCES',
 	'START_TOKENS',
 	'TOKEN_AMOUNT',
@@ -653,6 +654,27 @@ describe('PIN selection', () => {
 
 	it('keeps the PIN on without the setting', () => {
 		expect(load('pin-only.yaml').openAccess).toBe(false);
+	});
+});
+
+describe('members from an address', () => {
+	it('takes the fetched list over the configured one', () => {
+		process.env.DATA_DIR = path.join(TESTDATA, 'synced-members');
+		const config = load('members-url.yaml');
+		expect(config.membersUrl).toBe('http://bar.example/api/v1/accounts');
+		expect(config.members.map((m) => m.name)).toEqual(['Koen', 'ivom']);
+	});
+
+	it('keeps the configured list until the first fetch', () => {
+		process.env.DATA_DIR = path.join(TESTDATA, 'without-synced-members');
+		expect(load('members-url.yaml').members.map((m) => m.name)).toEqual(['Anna']);
+	});
+
+	it('ignores a fetched list without an address', () => {
+		process.env.DATA_DIR = path.join(TESTDATA, 'synced-members');
+		const config = load('pin-only.yaml');
+		expect(config.membersUrl).toBe('');
+		expect(config.members.map((m) => m.name)).not.toContain('Koen');
 	});
 });
 

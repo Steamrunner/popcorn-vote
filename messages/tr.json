@@ -359,6 +359,7 @@
 	"setup.memberName": "Aile üyesinin adı",
 	"setup.members": "Kimler katılıyor",
 	"setup.membersHint": "Bu kişiler oy alır. Hesaplar veya kişisel PIN’ler yoktur.",
+	"setup.membersFromUrl": "Üyeler PV_MEMBERS_URL içindeki adresten gelir ve kendiliğinden güncel kalır.",
 	"setup.removeMember": "Remove family member",
 	"setup.rules": "Film geceniz nasıl çalışır",
 	"setup.sources": "Filmleri nerede izliyorsunuz",

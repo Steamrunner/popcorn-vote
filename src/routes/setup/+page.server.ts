@@ -7,6 +7,7 @@ export const load: PageServerLoad = ({ locals, cookies }) => {
 		locale: locals.locale,
 		languageChoice: isLocale(languageChoice) ? languageChoice : null,
 		tmdbConfigured: locals.config.tmdbKeyState === 'ok',
-		omdbConfigured: locals.config.omdbKeyState === 'ok'
+		omdbConfigured: locals.config.omdbKeyState === 'ok',
+		membersFromUrl: Boolean(locals.config.membersUrl)
 	};
 };

@@ -359,6 +359,7 @@
 	"setup.memberName": "Family member name",
 	"setup.members": "Everyone joining in",
 	"setup.membersHint": "These are the people who get votes. There are no accounts or individual PINs.",
+	"setup.membersFromUrl": "The members come from the address in PV_MEMBERS_URL and stay up to date by themselves.",
 	"setup.removeMember": "Remove family member",
 	"setup.rules": "How your movie night works",
 	"setup.sources": "Where you watch films",

@@ -3,7 +3,8 @@ import path from 'node:path';
 import type { DB } from './db';
 import { metaGet, metaSet } from './db';
 import { creditOnce } from './game';
-import type { AppConfig } from './config';
+import { loadConfig, type AppConfig } from './config';
+import { runMemberSync } from './member-sync';
 import { keyState } from './keys';
 import { fetchTmdbRating, TmdbError } from './tmdb';
 import { log } from './log';
@@ -302,10 +303,14 @@ export async function runRatingBackfill(db: DB, config: AppConfig): Promise<numb
 
 let started = false;
 
-export function startScheduler(db: DB, config: AppConfig): void {
+export function startScheduler(db: DB): void {
 	if (started) return;
 	started = true;
 	const tick = () => {
+		// Read afresh every minute: settings saved in the app and a member list
+		// fetched from `members_url` both replace the configuration, and a copy
+		// taken at start-up would credit tokens to yesterday's members.
+		const config = loadConfig();
 		try {
 			const credited = runCreditTick(db, config);
 			if (credited > 0) log.info('Token credit booked', { credits: credited });
@@ -322,6 +327,7 @@ export function startScheduler(db: DB, config: AppConfig): void {
 				if (filled > 0) log.info('TMDB ratings filled in', { movies: filled });
 			})
 			.catch((err) => log.error('Rating backfill failed', { err }));
+		void runMemberSync(db).catch((err) => log.error('Member sync failed', { err }));
 	};
 	tick();
 	setInterval(tick, 60_000);

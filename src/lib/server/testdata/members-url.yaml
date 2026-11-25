@@ -1,0 +1,6 @@
+# Members from a bar system; the configured list below only counts until the
+# first fetch. The fetched list sits in testdata/synced-members/.
+members_url: 'http://bar.example/api/v1/accounts'
+members:
+  - id: anna
+    name: Anna

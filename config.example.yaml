@@ -19,6 +19,14 @@ title: 'Popcorn Vote'
 # color: the person's colour, hex only such as '#2f56d3' (names like 'gold' are
 #        ignored, the app measures the brightness for the text on top of it)
 # emoji: optional mark; without one the initial goes in the circle
+#
+# Instead of keeping this list by hand, `members_url` fetches it from a bar
+# system's account list (an object keyed by account name, each with a
+# `display_name`), at start-up and every hour. Accounts named like `--cash--`
+# are skipped, the id comes from the account name and the shown name from
+# `display_name` without a trailing `*`. Until the first fetch succeeds, the
+# list below stays in charge.
+# members_url: 'http://10.0.0.1/api/v1/accounts'
 members:
   - id: person1
     name: FIRST-NAME-1

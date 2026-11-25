@@ -23,7 +23,7 @@ if (!building) {
 	const config = loadConfig();
 	const db = getDb();
 	ensureBalances(db, config);
-	startScheduler(db, config);
+	startScheduler(db);
 	// Only for test instances (PV_DEMO_DATA) and only when the movie list is
 	// empty. Runs alongside, so that the movie database does not hold up the
 	// server start.

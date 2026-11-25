@@ -44,6 +44,7 @@ const base: AppConfig = {
 	omdbKeyState: 'missing',
 	pin: '1234',
 	openAccess: false,
+	membersUrl: '',
 	dataDir: '/tmp/pv-test',
 	httpsProof: { mode: 'none' },
 	sessionTimeout: 31_536_000,

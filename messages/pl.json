@@ -373,6 +373,7 @@
 	"setup.memberName": "Imię członka rodziny",
 	"setup.members": "Kto bierze udział",
 	"setup.membersHint": "Te osoby otrzymują głosy. Nie ma kont ani osobnych kodów PIN.",
+	"setup.membersFromUrl": "Członkowie pochodzą z adresu w PV_MEMBERS_URL i aktualizują się sami.",
 	"setup.removeMember": "Remove family member",
 	"setup.rules": "Jak działa wasz wieczór filmowy",
 	"setup.sources": "Gdzie oglądacie filmy",

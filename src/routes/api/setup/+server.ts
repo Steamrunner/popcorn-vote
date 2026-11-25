@@ -73,10 +73,12 @@ export const POST: RequestHandler = async ({ request, locals, cookies }) => {
 		: [];
 	if (title.length < 1 || title.length > 80)
 		return json({ error: locals.t('settings.errorInstanceName') }, { status: 400 });
+	// With `members_url` the members come from there, and setup asks for none.
 	if (
-		members.length === 0 ||
-		members.some((member) => member.length < 2 || member.length > 80) ||
-		new Set(members.map((member) => member.toLocaleLowerCase('en'))).size !== members.length
+		!current.membersUrl &&
+		(members.length === 0 ||
+			members.some((member) => member.length < 2 || member.length > 80) ||
+			new Set(members.map((member) => member.toLocaleLowerCase('en'))).size !== members.length)
 	)
 		return json({ error: locals.t('setup.errorMembers') }, { status: 400 });
 	if (!sources.length || sources.some((source) => source.length > 80))

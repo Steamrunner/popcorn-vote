@@ -359,6 +359,7 @@
 	"setup.memberName": "Nome do familiar",
 	"setup.members": "Quem participa",
 	"setup.membersHint": "Estas pessoas recebem votos. Não há contas nem PINs individuais.",
+	"setup.membersFromUrl": "Os membros vêm do endereço em PV_MEMBERS_URL e se mantêm atualizados sozinhos.",
 	"setup.removeMember": "Remover familiar",
 	"setup.rules": "Como funciona sua noite de cinema",
 	"setup.sources": "Onde vocês assistem aos filmes",

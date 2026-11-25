@@ -31,6 +31,12 @@ export interface AppConfig {
 	/** The title in the top left; every family may set its own. */
 	title: string;
 	members: Member[];
+	/**
+	 * Where the member list comes from instead of `members`: a JSON object of
+	 * accounts, such as a bar system's `/api/v1/accounts`. Empty when unset.
+	 * See `member-sync.ts`.
+	 */
+	membersUrl: string;
 	/** How many tokens there are per credit. */
 	tokenAmount: number;
 	tokenWeekday: number; // 0 = Sunday ... 6 = Saturday
@@ -298,6 +304,7 @@ function checkKeys(name: string, read: Record<string, unknown>, known: string[])
 const TOP_LEVEL_KEYS = [
 	'title',
 	'members',
+	'members_url',
 	'pin',
 	'users',
 	'token',
@@ -710,6 +717,25 @@ export function loadConfig(force = false): AppConfig {
 		),
 		undefined
 	);
+	// A member list fetched from `members_url` replaces the one above. Until the
+	// first fetch has succeeded, the list above stays in charge.
+	const membersUrl = choose(
+		origins,
+		'Members address',
+		'PV_MEMBERS_URL',
+		webAddress('Members address', 'PV_MEMBERS_URL', env('PV_MEMBERS_URL')),
+		webAddress('Members address', 'config.yaml', raw.members_url),
+		''
+	);
+	if (membersUrl) {
+		const fetched = readSyncedMembers(dir);
+		if (fetched.length > 0) {
+			members = fetched;
+			origins['Members'] = origins['Members address'];
+		} else {
+			log.info('The member list has not been fetched yet; using the configured members until it is');
+		}
+	}
 	if (!members || members.length === 0) {
 		members = [
 			// Animals like the example configuration, not 🍿 or 🎬: those two carry a
@@ -789,6 +815,7 @@ export function loadConfig(force = false): AppConfig {
 			DEFAULT_TITLE
 		),
 		members,
+		membersUrl,
 		// Check validity before choosing the source, otherwise the origin table names
 		// a source whose value was never used at all.
 		tokenAmount: choose(
@@ -998,6 +1025,44 @@ export function loadConfig(force = false): AppConfig {
 	return cached;
 }
 
+/** The file in DATA_DIR that holds the last member list fetched from `members_url`. */
+export const SYNCED_MEMBERS_FILE = 'members-from-url.json';
+
+/**
+ * The last fetched member list, or none. Whatever cannot be read is no list at
+ * all: one damaged entry would otherwise quietly drop a person and their votes.
+ */
+function readSyncedMembers(dir: string): Member[] {
+	const file = path.join(dir, SYNCED_MEMBERS_FILE);
+	if (!fs.existsSync(file)) return [];
+	try {
+		const list = JSON.parse(fs.readFileSync(file, 'utf8')) as unknown;
+		if (!Array.isArray(list)) throw new Error('not a list');
+		const valid = list.every(
+			(m) =>
+				m &&
+				typeof m.id === 'string' &&
+				m.id &&
+				typeof m.name === 'string' &&
+				m.name &&
+				typeof m.color === 'string' &&
+				typeof m.emoji === 'string'
+		);
+		if (!valid) throw new Error('unexpected entry');
+		return list as Member[];
+	} catch (err) {
+		log.warn(`${SYNCED_MEMBERS_FILE} is unreadable and is ignored until the next fetch`, { err });
+		return [];
+	}
+}
+
+/** One of the member colours, always the same one for the same id. */
+export function colourFor(id: string): string {
+	let sum = 0;
+	for (const char of id) sum = (sum * 31 + char.charCodeAt(0)) >>> 0;
+	return FALLBACK_COLORS[sum % FALLBACK_COLORS.length];
+}
+
 /** "Anna,Ben", or "Anna:#e63946:🦁,Ben:#457b9d", into a list of members. */
 function parseMembersEnv(value: string): Member[] {
 	return value
@@ -1023,7 +1088,7 @@ function parseMembersEnv(value: string): Member[] {
  * "mueller". Dropping them would change existing ids and orphan every token in
  * the database that belongs to them.
  */
-function slugify(name: string): string {
+export function slugify(name: string): string {
 	return (
 		name
 			.toLowerCase()

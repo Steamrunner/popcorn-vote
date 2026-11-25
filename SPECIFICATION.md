@@ -88,6 +88,10 @@ traffic, including the PIN, is readable on that network.
 
 ## 6. Data, backups and operations
 
+Members can come from an external account list (`members_url`) instead of the
+configuration. It is fetched at start-up and hourly and kept in `/data`; a
+failed or empty answer keeps the previous list.
+
 All persistent state lives in `/data`: the SQLite database, downloaded covers,
 configuration and backups. A nightly backup is created at the configured hour;
 the default keeps 14 copies. CSV import and export cover the active list and

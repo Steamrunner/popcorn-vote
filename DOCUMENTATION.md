@@ -613,7 +613,14 @@ contains:
 - **The family members**, each with a fixed identifier (`id` – never
   change it!), a display name (changeable at any time), a colour, and an
   emoji. The fixed identifier ensures that renaming someone never loses
-  their votes or ratings.
+  their votes or ratings. Instead of keeping the list by hand, `members_url`
+  (or `PV_MEMBERS_URL`) fetches it from a bar system's account list at
+  start-up and every hour. Accounts like `--cash--` are skipped, the account
+  name becomes the fixed identifier and `display_name`, without a trailing
+  `*`, the shown name. When the bar system is unreachable, the last fetched
+  list stays. Someone who disappears from it leaves the person picker; votes
+  they already placed stay on the films, just as when someone is removed from
+  `config.yaml` by hand, and their balance waits for them should they return.
 - **The PIN** (`pin`), four digits, or `none` to switch it off.
 - **The vote rules** (`token` – the block kept its old name): weekday,
   time, and amount of the credit, the cap, the opening balance. Default:

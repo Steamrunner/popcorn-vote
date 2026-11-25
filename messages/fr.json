@@ -359,6 +359,7 @@
 	"setup.memberName": "Nom du membre",
 	"setup.members": "Qui participe",
 	"setup.membersHint": "Ces personnes reçoivent des votes. Il n’y a ni comptes ni PIN individuels.",
+	"setup.membersFromUrl": "Les membres viennent de l’adresse dans PV_MEMBERS_URL et restent à jour tout seuls.",
 	"setup.removeMember": "Retirer le membre",
 	"setup.rules": "Fonctionnement de votre soirée cinéma",
 	"setup.sources": "Où regardez-vous les films ?",

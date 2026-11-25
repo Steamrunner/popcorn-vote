@@ -126,7 +126,7 @@
 		}
 		const cleanedMembers = members.map((member) => member.trim());
 		if (
-			cleanedMembers.some((member) => member.length < 2) ||
+			(!data.membersFromUrl && cleanedMembers.some((member) => member.length < 2)) ||
 			new Set(cleanedMembers.map((member) => member.toLocaleLowerCase('en'))).size !== cleanedMembers.length
 		) {
 			return fail(t('setup.errorMembers'), '[data-member-invalid="true"]');
@@ -158,7 +158,7 @@
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					title,
-					members,
+					members: data.membersFromUrl ? [] : members,
 					pin: noPin ? '' : pin,
 					confirmPin: noPin ? '' : confirmPin,
 					noPin,
@@ -262,34 +262,39 @@
 
 			<fieldset>
 				<legend><span>02</span>{t('setup.members')}</legend>
-				<p class="hint">{t('setup.membersHint')}</p>
-				{#each members as _, index (index)}
-					<div class="member-row">
-						<label
-							>{t('setup.memberName')}
-							<input
-								bind:value={members[index]}
-								data-member-invalid={members[index].trim().length < 2 ||
-									members.some(
-										(member, other) =>
-											other !== index &&
-											member.trim().toLocaleLowerCase('en') === members[index].trim().toLocaleLowerCase('en')
-									)}
-								minlength="2"
-								maxlength="80"
-							/></label
-						>
-						{#if members.length > 1}
-							<button
-								type="button"
-								class="remove"
-								aria-label={t('setup.removeMember')}
-								onclick={() => removeMember(index)}>×</button
+				{#if data.membersFromUrl}
+					<p class="configured">✓ {t('setup.membersFromUrl')}</p>
+				{:else}
+					<p class="hint">{t('setup.membersHint')}</p>
+					{#each members as _, index (index)}
+						<div class="member-row">
+							<label
+								>{t('setup.memberName')}
+								<input
+									bind:value={members[index]}
+									data-member-invalid={members[index].trim().length < 2 ||
+										members.some(
+											(member, other) =>
+												other !== index &&
+												member.trim().toLocaleLowerCase('en') ===
+													members[index].trim().toLocaleLowerCase('en')
+										)}
+									minlength="2"
+									maxlength="80"
+								/></label
 							>
-						{/if}
-					</div>
-				{/each}
-				<button type="button" class="add" onclick={addMember}>＋ {t('setup.addMember')}</button>
+							{#if members.length > 1}
+								<button
+									type="button"
+									class="remove"
+									aria-label={t('setup.removeMember')}
+									onclick={() => removeMember(index)}>×</button
+								>
+							{/if}
+						</div>
+					{/each}
+					<button type="button" class="add" onclick={addMember}>＋ {t('setup.addMember')}</button>
+				{/if}
 			</fieldset>
 
 			<fieldset>
